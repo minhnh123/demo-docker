@@ -1,20 +1,18 @@
-# Sử dụng Python image
+# Base image
 FROM python:3.12
 
-# Cài đặt thư viện hệ thống cần thiết
-RUN apt-get update && apt-get install -y gcc default-libmysqlclient-dev && rm -rf /var/lib/apt/lists/*
-
-# Thiết lập thư mục làm việc
+# Set work directory
 WORKDIR /app
 
-# Sao chép các file vào container
-COPY . /app
+# Copy application files
+COPY app.py /app
+COPY requirements.txt /app
 
-# Cài đặt các thư viện Python cần thiết
-RUN pip install flask mysql-connector-python
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose cổng 5000
+# Expose port for Flask
 EXPOSE 5000
 
-# Lệnh chạy ứng dụng
+# Run Flask app
 CMD ["python", "app.py"]

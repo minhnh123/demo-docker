@@ -1,52 +1,75 @@
 from flask import Flask, request, jsonify
 import mysql.connector
-import os
+from mysql.connector import Error
 
 app = Flask(__name__)
 
-# Kết nối tới database
+# Hàm kết nối đến database
 def get_db_connection():
-    return mysql.connector.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", "password"),
-        database=os.getenv("DB_NAME", "test_db"),
-    )
+    try:
+        connection = mysql.connector.connect(
+            host="db",        # Tên service database trong docker-compose.yml
+            user="root",      # Username của MySQL
+            password="root",  # Mật khẩu của MySQL
+            database="library_db"  # Database cần kết nối
+        )
+        return connection
+    except Error as e:
+        print(f"Error: {e}")
+        return None
 
-# Endpoint kiểm tra
-@app.route("/")
-def home():
-    return "Hello from Flask + MySQL!"
+# API: Lấy danh sách sách
+@app.route("/books", methods=["GET"])
+def get_books():
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({"error": "Database connection failed"}), 500
 
-# Endpoint thêm dữ liệu
-@app.route("/add", methods=["POST"])
-def add_record():
-    data = request.json
-    name = data.get("name")
-
-    if not name:
-        return jsonify({"error": "Name is required"}), 400
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO users (name) VALUES (%s)", (name,))
-    conn.commit()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM books")
+    books = cursor.fetchall()
     cursor.close()
-    conn.close()
+    connection.close()
 
-    return jsonify({"message": f"User {name} added successfully!"})
+    return jsonify(books)
 
-# Endpoint lấy dữ liệu
-@app.route("/users", methods=["GET"])
-def get_users():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users")
-    users = [{"id": row[0], "name": row[1]} for row in cursor.fetchall()]
+# API: Thêm sách mới
+@app.route("/books", methods=["POST"])
+def add_book():
+    data = request.get_json()
+    title = data.get("title")
+    author = data.get("author")
+
+    if not title or not author:
+        return jsonify({"error": "Title and author are required"}), 400
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO books (title, author) VALUES (%s, %s)", (title, author))
+    connection.commit()
     cursor.close()
-    conn.close()
+    connection.close()
 
-    return jsonify(users)
+    return jsonify({"message": "Book added successfully"}), 201
+
+# API: Xóa sách theo ID
+@app.route("/books/<int:book_id>", methods=["DELETE"])
+def delete_book(book_id):
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM books WHERE id = %s", (book_id,))
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return jsonify({"message": "Book deleted successfully"}), 200
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
