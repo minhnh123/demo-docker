@@ -1,18 +1,17 @@
 # Base image
-FROM python:3.12
+FROM python:3.12-slim
 
-# Set work directory
+# Set the working directory
 WORKDIR /app
 
 # Copy application files
-COPY app.py /app
-COPY requirements.txt /app
+COPY . /app
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port for Flask
+# Expose port
 EXPOSE 5000
 
-# Run Flask app
+# Command to run the application
 CMD ["python", "app.py"]
