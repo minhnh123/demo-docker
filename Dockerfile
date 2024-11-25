@@ -1,17 +1,15 @@
-# Base image
-FROM python:3.12-slim
+# Sử dụng image Python 3.9
+FROM python:3.9-slim
 
-# Set the working directory
+# Đặt thư mục làm việc
 WORKDIR /app
 
-# Copy application files
-COPY . /app
+# Copy file requirements và cài đặt dependencies
+COPY app/requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy mã nguồn ứng dụng
+COPY app/ .
 
-# Expose port
-EXPOSE 5000
-
-# Command to run the application
+# Chạy ứng dụng
 CMD ["python", "app.py"]
