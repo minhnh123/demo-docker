@@ -2,14 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docker Flask App</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Todo List Tracker</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to Flask with Docker!</h1>
-        <p>This is a simple web app running in a Docker container.</p>
-    </div>
+    <h1>Todo List Tracker</h1>
+    <form method="POST" action="/add">
+        <input type="text" name="task_name" placeholder="New task..." required>
+        <button type="submit">Add</button>
+    </form>
+    <ul>
+        {% for task in tasks %}
+        <li>
+            {{ task[1] }} - 
+            {% if task[2] == 0 %}
+                <a href="/update/{{ task[0] }}">Mark as Done</a>
+            {% else %}
+                <span>Done</span>
+            {% endif %}
+            <a href="/delete/{{ task[0] }}">Delete</a>
+        </li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

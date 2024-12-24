@@ -1,15 +1,17 @@
-# Sử dụng image Python 3.9
-FROM python:3.9-slim
+# Base image
+FROM python:3.9
 
-# Đặt thư mục làm việc
+# Set working directory
 WORKDIR /app
 
-# Copy file requirements và cài đặt dependencies
-COPY app/requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+# Copy application files
+COPY app/ /app
 
-# Copy mã nguồn ứng dụng
-COPY app/ .
+# Install dependencies
+RUN pip install flask
 
-# Chạy ứng dụng
+# Expose port
+EXPOSE 5000
+
+# Run the application
 CMD ["python", "app.py"]
